@@ -11,7 +11,7 @@ from extractor import extract_article, ExtractError
 from generator import generate_slides, N_SLIDES
 from ppt_builder import build_pptx
 
-st.set_page_config(page_title="뉴스 → 강의 PPT 15장", page_icon="📰", layout="centered")
+st.set_page_config(page_title="뉴스 → 강의 PPT 10장", page_icon="📰", layout="centered")
 
 
 def get_api_key() -> str | None:
