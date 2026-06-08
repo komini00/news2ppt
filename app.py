@@ -26,17 +26,15 @@ def get_api_key() -> str | None:
 # ---------- 스타일 ----------
 st.markdown("""
 <style>
-  .stApp { background:#0F172A; }
-  h1,h2,h3,p,label,div { color:#F8FAFC !important; }
-  .stTextInput input, .stTextArea textarea { background:#1E293B; color:#F8FAFC; border:1px solid #334155; }
+  /* 다크 테마는 .streamlit/config.toml 이 처리. 여기선 버튼 강조색만. */
   .stButton button { background:#60A5FA; color:#0F172A; font-weight:700; border:none; padding:.6rem 1.4rem; }
   .stDownloadButton button { background:#4ADE80; color:#0F172A; font-weight:800; }
   .hint { color:#94A3B8 !important; font-size:.85rem; }
 </style>
 """, unsafe_allow_html=True)
 
-st.title("📰 뉴스 기사 → 강의 PPT 15장")
-st.markdown('<p class="hint">기사 링크만 넣으면 강의용 슬라이드 15장을 자동으로 만들어 드립니다. 다운로드해서 바로 쓰세요.</p>',
+st.title("📰 뉴스 기사 → 강의 PPT 10장")
+st.markdown('<p class="hint">기사 링크만 넣으면 강의용 슬라이드 10장을 자동으로 만들어 드립니다. 다운로드해서 바로 쓰세요.</p>',
             unsafe_allow_html=True)
 
 url = st.text_input("뉴스 기사 링크 (URL)", placeholder="https://n.news.naver.com/article/...")
@@ -60,7 +58,7 @@ with st.expander("기사가 안 열리면? 본문을 직접 붙여넣기"):
 
 col1, col2 = st.columns([3, 2])
 with col1:
-    go = st.button("🚀 15장 PPT 만들기", use_container_width=True)
+    go = st.button("🚀 10장 PPT 만들기", use_container_width=True)
 with col2:
     use_mini = st.toggle("빠른 모드(mini)", value=False, help="gpt-4o-mini로 더 빠르고 저렴하게")
 
