@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>교수공개강의 — AI로 교수 업무 자동화</title>
+<style>
+  :root{
+    --bg:#0F172A; --text:#F8FAFC; --muted:#94A3B8; --subtle:#CBD5E1;
+    --c1:#60A5FA;   /* ① 뉴스PPT 파랑 */
+    --c2:#FBBF24;   /* ② 카톡 노랑 */
+    --c3:#4ADE80;   /* ③ 상담 초록 */
+    --c4:#F472B6;   /* ④ 인용 핑크 */
+    --danger:#FB7B7B; --surface:#1E293B; --border:#334155;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html,body{height:100%; background:#000;
+    font-family:'Pretendard','맑은 고딕',-apple-system,'Segoe UI',sans-serif; color:var(--text);}
+  #deck{position:fixed; inset:0; background:#000;}
+  .slide{display:none; position:absolute; inset:0; margin:auto; background:var(--bg);
+    padding:46px 60px 84px; flex-direction:column;}
+  .slide.active{display:flex; animation:fade .25s ease;}
+  @keyframes fade{from{opacity:0;} to{opacity:1;}}
+  @media (min-aspect-ratio:16/9){ .slide{height:100vh; width:calc(100vh*16/9);} }
+  @media (max-aspect-ratio:16/9){ .slide{width:100vw; height:calc(100vw*9/16);} }
+
+  .chip{display:inline-block; padding:6px 16px; border-radius:999px;
+    font-size:17px; font-weight:800; color:var(--bg); margin-bottom:18px; width:fit-content;}
+  h1{font-size:58px; font-weight:800; line-height:1.12; letter-spacing:-1px;}
+  h2{font-size:38px; font-weight:800; line-height:1.15;}
+  .sub{font-size:22px; color:var(--muted); margin-top:6px;}
+  .bar{height:7px; width:90px; border-radius:4px; margin:14px 0 8px;}
+  .audience{position:absolute; top:44px; right:60px; font-size:15px; font-weight:800;
+    padding:6px 14px; border-radius:8px; background:rgba(255,255,255,.06); border:1px solid var(--border);}
+
+  .grid4{display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin:auto 0;}
+  .card{background:var(--surface); border:1px solid var(--border); border-radius:16px;
+    padding:22px 18px; position:relative; overflow:hidden;}
+  .card .top{height:6px; position:absolute; left:0; right:0; top:0;}
+  .card h3{font-size:21px; font-weight:800; margin:6px 0 8px;}
+  .card p{font-size:15px; color:var(--muted); line-height:1.45;}
+  .card .tag{font-size:13px; font-weight:800; margin-top:12px; display:inline-block;}
+
+  .two{display:grid; grid-template-columns:1fr 1fr; gap:24px; flex:1; min-height:0; align-items:stretch;}
+  .panel{background:var(--surface); border:1px solid var(--border); border-radius:18px; padding:26px 26px;
+    display:flex; flex-direction:column;}
+  .panel .ph-t{font-size:24px; font-weight:800; margin-bottom:14px;}
+  .panel ul{list-style:none; display:flex; flex-direction:column; gap:12px;}
+  .panel li{font-size:18px; line-height:1.4; display:flex; gap:10px;}
+  .panel li .mk{flex:none; font-weight:800;}
+  .vs{position:absolute; left:50%; top:54%; transform:translate(-50%,-50%);
+    width:62px; height:62px; border-radius:50%; background:var(--bg); border:2px solid var(--border);
+    display:flex; align-items:center; justify-content:center; font-size:22px; font-weight:800; z-index:5;}
+
+  .steps{display:flex; flex-direction:column; gap:14px; margin-top:8px;}
+  .step{display:flex; gap:16px; align-items:center; background:var(--surface);
+    border:1px solid var(--border); border-radius:14px; padding:16px 20px;}
+  .step .n{flex:none; width:44px; height:44px; border-radius:50%; color:var(--bg);
+    font-size:21px; font-weight:800; display:flex; align-items:center; justify-content:center;}
+  .step .t{font-size:21px; font-weight:700;}
+  .step .d{font-size:15px; color:var(--muted); margin-top:2px;}
+
+  .row{display:flex; gap:30px; flex:1; align-items:center;}
+  .col{flex:1;}
+  .qrbox{flex:none; width:300px; height:300px; background:#fff; border-radius:20px; padding:14px;}
+  .qrbox img{width:100%; height:100%;}
+  .qrcap{text-align:center; font-size:20px; font-weight:800; color:var(--c1); margin-top:12px;}
+
+  .flow{display:flex; align-items:stretch; width:100%; margin:auto 0;}
+  .flow .node{flex:1; background:var(--surface); border:1px solid var(--border); border-radius:14px;
+    padding:20px 12px; text-align:center;}
+  .flow .node .ico{font-size:34px;} .flow .node .nt{font-size:18px; font-weight:800; margin-top:6px;}
+  .flow .node .nd{font-size:13px; color:var(--muted); margin-top:3px;}
+  .flow .arrow{flex:none; width:42px; display:flex; align-items:center; justify-content:center;
+    font-size:28px; color:var(--c3);}
+
+  .ph{border:2px dashed var(--border); border-radius:16px; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; color:var(--muted); min-height:200px;
+    background:repeating-linear-gradient(45deg,#0b1220,#0b1220 12px,#111c30 12px,#111c30 24px); padding:18px; text-align:center;}
+  .ph .ico{font-size:48px; margin-bottom:8px;} .ph .lab{font-size:19px; font-weight:800;}
+  .ph .hint{font-size:13px; margin-top:6px;}
+  .ph img{max-width:100%; max-height:100%; border-radius:10px;}
+
+  .compare{display:grid; grid-template-columns:1fr 1fr; gap:20px;}
+  .compare .box{border-radius:16px; padding:20px 22px;}
+  .bad{background:rgba(251,123,123,.08); border:1px solid #5b2330;}
+  .good{background:rgba(74,222,128,.08); border:1px solid #1f5135;}
+  .compare .lab{font-size:16px; font-weight:800; margin-bottom:10px;}
+  .compare ul{list-style:none; display:flex; flex-direction:column; gap:8px;}
+  .compare li{font-size:16px; line-height:1.4;}
+  .cbad{color:var(--danger);} .cgood{color:var(--c3);}
+
+  ul.clean{list-style:none; display:flex; flex-direction:column; gap:14px; margin-top:14px;}
+  ul.clean li{font-size:23px; display:flex; gap:14px; align-items:flex-start;}
+  ul.clean li .mk{flex:none; font-weight:800;}
+
+  #pageno{position:fixed; right:16px; bottom:16px; font-size:14px; color:var(--muted);
+    z-index:40; background:rgba(0,0,0,.4); padding:4px 10px; border-radius:8px;}
+  #bar{position:fixed; left:0; right:0; bottom:0; height:7px; background:#0b1220; z-index:30;}
+  #prog{height:100%; width:0; background:var(--c1); transition:width .2s;}
+  .notes{position:fixed; left:0; right:0; bottom:0; max-height:44vh; overflow:auto;
+    background:rgba(2,6,14,.97); border-top:2px solid var(--c2); padding:18px 30px 24px; z-index:50; display:none;
+    font-size:16px; line-height:1.6;}
+  .notes.show{display:block;}
+  .notes h4{color:var(--c2); font-size:14px; letter-spacing:1px; margin-bottom:8px;}
+  .notes .m{color:var(--text); margin-bottom:8px; white-space:pre-wrap;}
+  .notes .pre{color:var(--danger); font-size:14px;}
+  .notes .time{color:var(--muted); font-size:13px; float:right;}
+  .help{position:fixed; top:14px; left:50%; transform:translateX(-50%); z-index:40; font-size:13px;
+    color:var(--muted); background:rgba(0,0,0,.4); padding:5px 14px; border-radius:8px; opacity:0; transition:.3s;}
+  body:hover .help{opacity:1;}
+</style>
+</head>
+<body>
+<div class="help">← → 이동 · N 발표자노트 · F 전체화면</div>
+<div id="deck">
+
+<!-- 1 표지 -->
+<section class="slide active" data-corner="">
+  <span class="chip" style="background:var(--c1)">교수공개강의 · 약 60분</span>
+  <h1>채팅을 넘어,<br>AI에게 <span style="color:var(--c2)">일을 시키는</span> 교수</h1>
+  <p class="sub" style="margin-top:26px">뉴스PPT · 카톡평가 · 학생상담 · 논문 인용검증 — 오늘 하나는 직접, 셋은 함께 봅니다</p>
+  <p class="sub" style="margin-top:auto; font-size:17px">진행 · 고민환  |  동국대학교 WISE캠퍼스</p>
+  <div class="notes"><h4>진행 멘트 <span class="time">30초</span></h4>
+    <div class="m">"안녕하세요. 오늘 60분 동안, AI를 '채팅으로 묻는' 단계를 넘어서 '내 업무를 통째로 시키는' 단계까지 보여드릴게요. 네 가지인데, 하나는 여러분이 직접 해보시고 셋은 제가 실제로 어떻게 쓰는지 보여드립니다."</div>
+  </div>
+</section>
+
+<!-- 2 오늘의 4가지 -->
+<section class="slide" data-corner="도입">
+  <span class="chip" style="background:var(--c2)">오늘의 4가지</span>
+  <h2>교육 · 행정 · 연구 — 교수 업무 전 영역</h2>
+  <div class="grid4">
+    <div class="card"><span class="top" style="background:var(--c1)"></span>
+      <h3>① 뉴스PPT</h3><p>뉴스 링크 하나로 강의 슬라이드 10장.</p>
+      <span class="tag" style="color:var(--c1)">▶ 직접 해봅니다</span></div>
+    <div class="card"><span class="top" style="background:var(--c2)"></span>
+      <h3>② 카톡평가</h3><p>학생 토론을 내 기준으로 자동 채점.</p>
+      <span class="tag" style="color:var(--c2)">👀 시연</span></div>
+    <div class="card"><span class="top" style="background:var(--c3)"></span>
+      <h3>③ 학생상담</h3><p>예약·캘린더·문자까지 무인 자동화.</p>
+      <span class="tag" style="color:var(--c3)">👀 시연</span></div>
+    <div class="card"><span class="top" style="background:var(--c4)"></span>
+      <h3>④ 인용검증</h3><p>AI가 지어낸 가짜 인용을 1초에 적발.</p>
+      <span class="tag" style="color:var(--c4)">👀 시연</span></div>
+  </div>
+  <p class="sub" style="margin-top:20px"><b style="color:var(--c1)">①만 같이 해보고, 나머지 셋은 편하게 구경</b>하시면 됩니다.</p>
+  <div class="notes"><h4>진행 멘트 <span class="time">2분</span></h4>
+    <div class="m">"교육(카톡평가), 행정(상담), 연구(인용검증) — 교수 업무 전 영역을 하나씩 보여드려요. 첫 번째 뉴스PPT만 여러분이 직접 해보시고, 나머지는 따라 하실 필요 없이 구경하세요. 부담 안 가지셔도 됩니다."</div>
+    <div class="pre">⚠️ "①만 참여, 나머진 구경" 분명히 → 청중 부담 제거</div>
+  </div>
+</section>
+
+<!-- 3 ① 뉴스PPT 셋업 QR -->
+<section class="slide" data-corner="① 뉴스PPT">
+  <span class="audience" style="color:var(--c1)">▶ 직접 따라하기</span>
+  <span class="chip" style="background:var(--c1)">① 뉴스PPT · 지금 접속</span>
+  <h2>뉴스 링크 하나로 강의 PPT 10장</h2>
+  <div class="bar" style="background:var(--c1)"></div>
+  <div class="row">
+    <div class="col">
+      <div class="steps">
+        <div class="step"><div class="n" style="background:var(--c1)">1</div><div>
+          <div class="t">뉴스 기사 링크 붙여넣기</div><div class="d">관심 있는 기사 URL 복사 → 붙여넣기</div></div></div>
+        <div class="step"><div class="n" style="background:var(--c1)">2</div><div>
+          <div class="t">학과·학년·강조점 입력 <span style="font-size:14px;color:var(--muted)">(선택)</span></div><div class="d">전공·이론 넣으면 그 관점으로 바뀜</div></div></div>
+        <div class="step"><div class="n" style="background:var(--c1)">3</div><div>
+          <div class="t">🚀 10장 만들기 → ⬇️ 다운로드</div><div class="d">바로 열어서 수업에 사용</div></div></div>
+      </div>
+    </div>
+    <div class="col" style="flex:none">
+      <div class="qrbox"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAlgAAAJYAQMAAACEqAqfAAAABlBMVEX///8AAABVwtN+AAAACXBIWXMAAA7EAAAOxAGVKw4bAAACv0lEQVR4nO3cQW7jMAyFYRVdZJkj+Cg+Wnw0HyVHyDILI5qakkhRcGc6gxZDA/9bKLEbfd2ZESUkJUJInFzzkNd+971erOXdM6XbPqR0yXnZX8dZ+YGFhYWF9QOWTG6Z9su5MJZLBS1l8nCJhYWFhRXcmrRsTFo7xJrzVj990wIig0y2soGFhYWFdUZLhDq0LKWAZF0rYGFhYWGd3up7Q1JAXG8o/30dwsLCwsKKYVmG3pAVEKkdy37P1goWLCwsLKz41pBhrbD1taPvDQ3BwsLCwoptHee9HvOpBcTWCql/97VgYWFhYf2rdfWP+qm82yooWctXezfIxH7AwsLCwjqP9ZF7ejuwkn61lzy1f9++1R+uFbCwsLCwoln31PLp+ZzcrRWyqxgWLCwsLKzI1svfeNPJm95rW7Vm2fkct1bAwsLCwopr5Vo7puyylr/b7ynkHrS2ULdVi4WFhYUV2ZLaIRWjVZG5WEd7v5dK13849oawsLCwsOJaLXe/TJh1Q2BVocbt/Y51CAsLCwvr2yzJVI7m2JPf+vetib8oY+dzKqP9HCwsLCysuJb9BoLVjlXP31v685hJhYN+DhYWFhZWUCtr/952bt1RzFn79zWun2MDFhYWFlZoa6gd7rhOv1a4VMZ6Qx0jwcLCwsIKb7nekG3VWm5aQP7YG8LCwsLCimtZXrVYHGUpquXhTupgYWFhYcW1jtIf80nHvSFJ9ioWFhYW1jdb1zykPe/X8vl2HtP2a2v//uBRj4WFhYUV2XIN+9rU+V0/p68dvvpgYWFhYQW3Ji0bU1c73HlMyVJUy+OTvV8sLCwsrHNYrjeUitCO5kh0dg9iYWFhYZ3Nkmx1Qr3MvkHk0mQsLCwsrNCWxWpHPzz7j9x0L0BqRx2wsLCwsKJbQ1ztOCobi06U16/sI2NhYWFh/XeLEBIlvwDpfs++0kykYQAAAABJRU5ErkJggg==" alt="앱 QR" /></div>
+      <div class="qrcap">📷 QR 찍고 접속</div>
+    </div>
+  </div>
+  <div class="notes"><h4>진행 멘트 <span class="time">셋업 4분</span></h4>
+    <div class="m">"핸드폰이든 노트북이든, QR 찍어서 접속해보세요. 가입도 설치도 없습니다. 화면 뜨면 손 들어주세요."</div>
+    <div class="pre">⚠️ 강의 직전 본인이 1회 생성해 워밍업 / 빠른모드(mini) 켜라고 안내(빠르고 저렴) / 학교PC 차단 시 핫스팟</div>
+  </div>
+</section>
+
+<!-- 4 ① 결과 공유 -->
+<section class="slide" data-corner="① 뉴스PPT">
+  <span class="audience" style="color:var(--c1)">▶ 직접 따라하기</span>
+  <span class="chip" style="background:var(--c1)">① 결과 확인 (12분)</span>
+  <h2>방금 만든 PPT, 열어보세요</h2>
+  <div class="bar" style="background:var(--c1)"></div>
+  <ul class="clean">
+    <li><span class="mk" style="color:var(--c1)">✓</span><div><b>핵심 + 세부설명</b>까지 채운 10장이 다운로드됩니다</div></li>
+    <li><span class="mk" style="color:var(--c1)">✓</span><div>학과·학년·강조 이론을 넣으면 <b>그 전공 관점</b>으로 토론질문까지 달라져요</div></li>
+    <li><span class="mk" style="color:var(--c2)">→</span><div>옆 교수님과 <b>각자 고른 뉴스·결과</b>를 1분만 비교해보세요</div></li>
+  </ul>
+  <p class="sub" style="margin-top:auto">이게 오늘 여러분이 <b style="color:var(--c1)">손에 들고 가실 결과물</b>입니다.</p>
+  <div class="notes"><h4>진행 멘트 <span class="time">12분</span></h4>
+    <div class="m">"다운로드해서 열어보세요. 표지부터 토론질문까지 10장이 채워져 있죠? 각자 다른 기사로 했으니 옆 교수님과 결과를 비교해보세요. 이게 오늘 손에 들고 가실 거예요."</div>
+    <div class="pre">⚠️ 동시 접속 느리면 "한 분씩" 안내 / 결과 안 나오면 본인 화면 공유</div>
+  </div>
+</section>
+
+<!-- 5 클로드 앱 vs 코드 (다리) -->
+<section class="slide" data-corner="전환">
+  <span class="chip" style="background:var(--surface); color:var(--text); border:1px solid var(--border)">잠깐 — 이건 어떻게 만들었을까요?</span>
+  <h2>클로드 <span style="color:var(--c1)">앱</span> vs 클로드 <span style="color:var(--c2)">코드</span></h2>
+  <div class="bar" style="background:var(--c2)"></div>
+  <div class="two" style="position:relative; margin-top:8px">
+    <div class="panel">
+      <div class="ph-t" style="color:var(--c1)">💬 클로드 앱 (채팅)</div>
+      <ul>
+        <li><span class="mk" style="color:var(--c1)">·</span>채팅창에 묻고 답 — 글·요약·기획·번역</li>
+        <li><span class="mk" style="color:var(--c1)">·</span><b>누구나 오늘부터</b></li>
+        <li><span class="mk" style="color:var(--muted)">·</span>매번 새로 부탁 → <b>휘발</b></li>
+      </ul>
+      <p style="margin-top:auto; color:var(--muted); font-size:16px">비유: 매번 새로 부탁하는 <b>상담원</b></p>
+    </div>
+    <div class="panel" style="border-color:#3d4f2a">
+      <div class="ph-t" style="color:var(--c2)">⚙️ 클로드 코드 (개발 도구)</div>
+      <ul>
+        <li><span class="mk" style="color:var(--c2)">·</span>내 컴퓨터에서 <b>직접 일</b> — 자동화·앱 제작</li>
+        <li><span class="mk" style="color:var(--c2)">·</span><b>내 업무 전용 '스킬'을 만들어 쌓음</b> → 계속 재사용</li>
+        <li><span class="mk" style="color:var(--c2)">·</span>진입장벽 있지만 교수도 가능</li>
+      </ul>
+      <p style="margin-top:auto; color:var(--c2); font-size:16px">비유: 한 번 가르치면 계속 일하는 <b>전용 직원</b></p>
+    </div>
+    <div class="vs">VS</div>
+  </div>
+  <p class="sub" style="margin-top:16px"><b>방금 쓰신 뉴스PPT 앱도, 지금 보여드릴 셋도 — 전부 제가 '클로드 코드'로 만든 스킬입니다.</b></p>
+  <div class="notes"><h4>진행 멘트 <span class="time">3분</span></h4>
+    <div class="m">"방금 쓰신 그 앱, 어떻게 만들었을까요? 클로드엔 두 가지가 있어요. 하나는 여러분이 평소 쓰는 '채팅'(앱). 다른 하나는 '코드'인데, 내 컴퓨터에서 직접 일을 합니다. 핵심은 — 코드는 내 업무를 '스킬'로 한 번 만들어두면 계속 쌓여요. 채팅은 매번 처음부터지만요. 지금 보여드릴 셋이 다 제가 만든 스킬입니다."</div>
+    <div class="pre">⚠️ 발상 중심 톤 — "코딩 배우세요" 강요 X. "이런 게 된다 + 관심 있으면 안내"</div>
+  </div>
+</section>
+
+<!-- 6 ② 카톡평가 시연 -->
+<section class="slide" data-corner="② 카톡평가">
+  <span class="audience" style="color:var(--c2)">👀 라이브 시연</span>
+  <span class="chip" style="background:var(--c2)">② 카톡평가 · 교육</span>
+  <h2>학생 토론을 내 기준으로 자동 채점</h2>
+  <div class="bar" style="background:var(--c2)"></div>
+  <div class="two" style="margin-top:6px">
+    <div class="ph" data-img="assets/카톡_대화.png">
+      <div class="ico">💬</div><div class="lab">실제 학생 카톡 대화 (사진 자리)</div>
+      <div class="hint">고민환 제공 — assets/카톡_대화.png<br>※ 학생 이름 마스킹 필수</div>
+    </div>
+    <div style="display:flex; flex-direction:column; gap:14px">
+      <div class="compare" style="grid-template-columns:1fr">
+        <div class="box bad"><div class="lab cbad">❌ 채팅(앱)으로 하면</div>
+          <ul><li>44명 대화가 너무 길어 <b>잘림</b></li>
+          <li>발언 수·글자 수 <b>못 셈</b></li>
+          <li>돌릴 때마다 <b>점수가 출렁</b></li></ul></div>
+        <div class="box good"><div class="lab cgood">✅ 코드로 하면</div>
+          <ul><li>파일 통째로 읽어 <b>발언·글자수 정확 계산</b></li>
+          <li>AI는 <b>질적 평가만</b> → 안 흔들림</li>
+          <li><b>Excel·Notion 자동</b> → 매주 같은 기준</li></ul></div>
+      </div>
+    </div>
+  </div>
+  <div class="notes"><h4>진행 멘트 <span class="time">8분</span></h4>
+    <div class="m">"이게 실제 제 학생들 토론이에요. 이걸 채팅에 붙여넣으면? 길어서 잘리고, 발언 수도 못 세고, 점수가 매번 달라요. 그런데 코드로 하면 — 파일을 통째로 읽어서 숫자는 정확히 세고, 판단만 AI한테 맡깁니다. 그래서 매주 같은 기준으로 자동 채점되고 노션에 쌓여요."</div>
+    <div class="pre">⚠️ 채점결과/Notion 백업 캡처 준비(라이브 사고 대비) · 학생 이름 마스킹</div>
+  </div>
+</section>
+
+<!-- 7 ③ 상담 시연 -->
+<section class="slide" data-corner="③ 학생상담">
+  <span class="audience" style="color:var(--c3)">👀 라이브 시연</span>
+  <span class="chip" style="background:var(--c3)">③ 학생상담 · 행정</span>
+  <h2>예약부터 문자까지 — 사람이 안 붙어도</h2>
+  <div class="bar" style="background:var(--c3)"></div>
+  <div class="flow" style="margin:10px 0">
+    <div class="node"><div class="ico">📝</div><div class="nt">학생 폼 제출</div><div class="nd">시간 선택</div></div>
+    <div class="arrow">→</div>
+    <div class="node"><div class="ico">📊</div><div class="nt">시트 정리</div><div class="nd">중복 자동거절</div></div>
+    <div class="arrow">→</div>
+    <div class="node"><div class="ico">📅</div><div class="nt">캘린더 등록</div><div class="nd">내 일정에</div></div>
+    <div class="arrow">→</div>
+    <div class="node"><div class="ico">💬</div><div class="nt">문자 발송</div><div class="nd">확정·당일</div></div>
+  </div>
+  <div class="ph" data-img="assets/상담_문자.png" style="flex:1">
+    <div class="ico">📲</div><div class="lab">실제 상담 문자 캡처 (사진 자리)</div>
+    <div class="hint">고민환 제공 — assets/상담_문자.png &nbsp;|&nbsp; ※ 이름·번호 마스킹 필수</div>
+  </div>
+  <div class="notes"><h4>진행 멘트 <span class="time">8분</span></h4>
+    <div class="m">"상담 예약도 제가 손 안 댑니다. 학생이 폼에서 시간 고르면 → 시트 정리 → 제 캘린더 등록 → 확정 문자까지 자동이에요. 보세요, 이게 실제로 제 폰에 온 문자들. 이런 행정 반복은 전부 자동화 대상입니다."</div>
+    <div class="pre">⚠️ 문자 스크린샷 이름·번호 마스킹 확인 · 데모 폼(선택)</div>
+  </div>
+</section>
+
+<!-- 8 ④ 인용검증 시연 -->
+<section class="slide" data-corner="④ 인용검증">
+  <span class="audience" style="color:var(--c4)">👀 라이브 시연</span>
+  <span class="chip" style="background:var(--c4)">④ 인용검증 · 연구</span>
+  <h2>AI가 지어낸 가짜 인용을 1초에 적발</h2>
+  <div class="bar" style="background:var(--c4)"></div>
+  <div class="compare" style="margin-top:6px">
+    <div class="box bad"><div class="lab cbad">📝 AI가 써준 인용 (그럴듯함)</div>
+      <p style="font-size:17px; line-height:1.5">"Kim &amp; Lee (2021)는 항공 서비스 품질이 재이용 의도에 정(+)의 영향을 미친다고 <b class="cbad">실증하였다.</b>"</p>
+      <p style="margin-top:10px; font-size:14px; color:var(--danger)">→ 저자·연도·저널이 실재? 정말 그렇게 말했나?</p></div>
+    <div class="box good"><div class="lab cgood">🔍 실데이터로 1초 대조</div>
+      <p style="font-size:16px; line-height:1.5"><b class="cgood">✓ 실재 여부 · ✓ 저자/연도 · ✓ 초록에 그 주장이 있나</b></p>
+      <p style="margin-top:10px; font-size:14px; color:var(--muted)">없는 논문이면 즉시 적발 → 데스크리젝·표절 사전 차단</p></div>
+  </div>
+  <div class="ph" data-img="assets/인용_적발.png" style="flex:1; margin-top:16px">
+    <div class="ico">🚨</div><div class="lab">실제 인용 적발 결과 (사진 자리)</div>
+    <div class="hint">고민환 제공 — assets/인용_적발.png</div>
+  </div>
+  <div class="notes"><h4>진행 멘트 <span class="time">10분</span></h4>
+    <div class="m">"연구자에게 제일 무서운 거예요. AI한테 인용 달아달라 하면 그럴듯하게 써주는데, 그 논문이 실제로 없을 수 있어요. 제가 만든 검증 스킬은 실제 데이터랑 대조해서 1초에 잡습니다. 핵심 메시지는 'AI를 믿지 말고 검증하라'예요."</div>
+    <div class="pre">⚠️ 적발 성공 백업 캡처 필수(라이브 사고 대비) · 인용은 추정 금지(실데이터만)</div>
+  </div>
+</section>
+
+<!-- 9 마무리 -->
+<section class="slide" data-corner="마무리">
+  <span class="chip" style="background:var(--c2)">오늘 가져가실 것</span>
+  <h2>채팅을 넘어, 내 업무를 쌓는다</h2>
+  <div class="bar" style="background:var(--c2)"></div>
+  <ul class="clean">
+    <li><span class="mk" style="color:var(--c1)">①</span><div><b>직접 만든 뉴스PPT</b> — 앱은 그대로 두고 계속 쓰세요</div></li>
+    <li><span class="mk" style="color:var(--c2)">②</span><div><b>"내 것 만들기" 가이드</b> — 직접 운영하고 싶은 분께</div></li>
+    <li><span class="mk" style="color:var(--c4)">③</span><div><b>발상</b> — 내 반복 업무도 '스킬'로 만들어 쌓을 수 있다</div></li>
+  </ul>
+  <div class="card" style="margin-top:auto"><span class="top" style="background:var(--c2)"></span>
+    <p style="font-size:23px; font-weight:800; margin-top:4px">오늘 보신 셋은 한 걸음 더 간 것일 뿐 — 어렵지 않습니다.</p>
+    <p style="font-size:17px; color:var(--muted); margin-top:8px">더 보고 싶으신 분은 따로 안내해 드릴게요. &nbsp;|&nbsp; 고민환 · 동국대학교 WISE캠퍼스</p>
+  </div>
+  <div class="notes"><h4>진행 멘트 <span class="time">5분</span></h4>
+    <div class="m">"오늘 가져가실 건 세 가지예요. 직접 만든 뉴스PPT, 내 것 만들기 가이드, 그리고 가장 중요한 발상 — '내 반복 업무도 스킬로 만들어 쌓을 수 있다'. 오늘 본 카톡·상담·인용이 다 제가 만든 스킬이에요. 여러분도 본인 업무 스킬을 만들 수 있습니다. 더 보고 싶은 분은 따로 안내해 드릴게요. 감사합니다."</div>
+  </div>
+</section>
+
+</div>
+<div id="pageno">1 / 9</div>
+<div id="bar"><div id="prog"></div></div>
+
+<script>
+  const slides=[...document.querySelectorAll('.slide')];
+  const cc={'① 뉴스PPT':'var(--c1)','② 카톡평가':'var(--c2)','③ 학생상담':'var(--c3)','④ 인용검증':'var(--c4)','도입':'var(--c1)','전환':'var(--c2)','마무리':'var(--c2)'};
+  let i=0, notesOn=false;
+  function render(){
+    slides.forEach((s,n)=>s.classList.toggle('active',n===i));
+    document.getElementById('pageno').textContent=`${i+1} / ${slides.length}`;
+    document.getElementById('prog').style.width=`${(i+1)/slides.length*100}%`;
+    document.getElementById('prog').style.background=cc[slides[i].dataset.corner]||'var(--c1)';
+    document.querySelectorAll('.notes').forEach(n=>n.classList.remove('show'));
+    if(notesOn){const nt=slides[i].querySelector('.notes'); if(nt)nt.classList.add('show');}
+    const ph=slides[i].querySelector('.ph[data-img]');
+    if(ph && !ph.dataset.tried){ph.dataset.tried=1; const img=new Image();
+      img.onload=()=>{ph.innerHTML=''; ph.appendChild(img); ph.style.border='none'; ph.style.background='none';};
+      img.src=ph.dataset.img;}
+  }
+  function go(d){i=Math.max(0,Math.min(slides.length-1,i+d)); render();}
+  document.addEventListener('keydown',e=>{
+    if(e.key==='ArrowRight'||e.key===' '||e.key==='PageDown')go(1);
+    else if(e.key==='ArrowLeft'||e.key==='PageUp')go(-1);
+    else if(e.key==='Home'){i=0;render();} else if(e.key==='End'){i=slides.length-1;render();}
+    else if(e.key.toLowerCase()==='n'){notesOn=!notesOn;render();}
+    else if(e.key.toLowerCase()==='f'){if(!document.fullscreenElement)document.documentElement.requestFullscreen();else document.exitFullscreen();}
+  });
+  document.getElementById('deck').addEventListener('click',e=>{ if(e.target.closest('.notes'))return;
+    const x=e.clientX/window.innerWidth; go(x<0.3?-1:1); });
+  if(location.search.includes('notes'))notesOn=true;
+  render();
+</script>
+</body>
+</html>
