@@ -41,7 +41,7 @@ url = st.text_input("뉴스 기사 링크 (URL)", placeholder="https://n.news.na
 
 cda, cdb = st.columns(2)
 with cda:
-    dept = st.text_input("수업 학과/전공", placeholder="예: 경영학과, 간호학과, 항공서비스")
+    dept = st.text_input("수업 학과/전공", placeholder="예: 경영학과, 간호학과, 사회복지학과")
 with cdb:
     grade = st.selectbox("학년", ["선택 안 함", "1학년", "2학년", "3학년", "4학년", "대학원"])
 
