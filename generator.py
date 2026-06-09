@@ -41,7 +41,7 @@ SYSTEM = f"""당신은 대학 교수의 수업 자료를 만드는 전문 교안
 def generate_slides(title: str, body: str, model: str = "gpt-4o",
                     api_key: str | None = None,
                     dept: str = "", grade: str = "", emphasis: str = "") -> list[dict]:
-    client = OpenAI(api_key=api_key) if api_key else OpenAI()
+    client = OpenAI(api_key=api_key, max_retries=5, timeout=90) if api_key else OpenAI(max_retries=5, timeout=90)
     audience = " ".join(x for x in [dept.strip(), grade.strip()] if x) or "일반 학부생"
     emph = emphasis.strip()
 
@@ -55,16 +55,21 @@ def generate_slides(title: str, body: str, model: str = "gpt-4o",
 
     last_err = None
     for attempt in range(3):
-        resp = client.chat.completions.create(
-            model=model,
-            messages=[
-                {"role": "system", "content": SYSTEM},
-                {"role": "user", "content": user},
-            ],
-            temperature=0.5,
-            max_tokens=3500,
-            response_format={"type": "json_object"},
-        )
+        try:
+            resp = client.chat.completions.create(
+                model=model,
+                messages=[
+                    {"role": "system", "content": SYSTEM},
+                    {"role": "user", "content": user},
+                ],
+                temperature=0.5,
+                max_tokens=3500,
+                response_format={"type": "json_object"},
+            )
+        except Exception as e:
+            # 연결·타임아웃·rate limit 등 — 재시도
+            last_err = e
+            continue
         raw = resp.choices[0].message.content.strip()
         try:
             data = json.loads(raw)
