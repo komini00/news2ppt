@@ -164,6 +164,14 @@
   .dualcap .ph{flex:1; margin:0;}
   .dualcap figcaption{flex:none; text-align:center; font-size:19px; font-weight:800; color:var(--c4);}
   .dualcap .da{flex:none; font-size:36px; font-weight:800; color:var(--c4);}
+  /* 도입: 달라진 일상 (Before → After) */
+  .ba{display:flex; align-items:stretch; gap:16px; flex:1; min-height:0; margin-top:10px;}
+  .ba .panel{flex:1;}
+  .ba .panel.after{flex:1.45; border:2px solid var(--c2); background:rgba(251,191,36,.06);}
+  .ba .bigarrow{flex:none; display:flex; align-items:center; font-size:40px; font-weight:800; color:var(--c2);}
+  .ba ul.life{list-style:none; display:flex; flex-direction:column; gap:13px;}
+  .ba ul.life li{font-size:21px; line-height:1.35; display:flex; gap:12px;}
+  .ba .cap{margin-top:auto; padding-top:12px; font-size:16px; font-weight:800;}
 </style>
 </head>
 <body>
@@ -181,7 +189,41 @@
   </div>
 </section>
 
-<!-- 2 오늘의 4가지 -->
+<!-- 2 시작: 달라진 일상 -->
+<section class="slide" data-corner="도입">
+  <span class="chip" style="background:var(--c2)">시작하며 — 제 이야기</span>
+  <h2>채팅 AI를 넘었더니, 하루가 바뀌었습니다</h2>
+  <div class="bar" style="background:var(--c2)"></div>
+  <div class="ba">
+    <div class="panel">
+      <div class="ph-t" style="color:var(--muted)">💬 채팅 AI만 쓸 때</div>
+      <ul>
+        <li><span class="mk" style="color:var(--muted)">·</span>물어보면 답해줌 — 근데 매번 처음부터</li>
+        <li><span class="mk" style="color:var(--muted)">·</span>복붙·재설명을 매번 반복</li>
+        <li><span class="mk" style="color:var(--muted)">·</span>반복 잡무는 그대로 내 몫</li>
+      </ul>
+      <div class="cap" style="color:var(--muted)">누구나 쓰는 단계</div>
+    </div>
+    <div class="bigarrow">→</div>
+    <div class="panel after">
+      <div class="ph-t" style="color:var(--c2)">⚙️ AI에게 '일을 시킨' 뒤 — 제 하루</div>
+      <ul class="life">
+        <li>🌅 매일 새벽 브리핑이 자동으로 와 있음</li>
+        <li>📰 뉴스 링크 하나 → 강의 PPT 1분</li>
+        <li>💬 학생 토론·과제 채점 자동</li>
+        <li>📅 상담 예약·확정 문자까지 무인</li>
+        <li>🔍 논문 인용검증 반나절 → 몇 분</li>
+      </ul>
+      <div class="cap" style="color:var(--c2)">한 번 만들면 매일 알아서 — 시간이 생겼어요</div>
+    </div>
+  </div>
+  <p class="sub" style="margin-top:16px"><b style="color:var(--c2)">코딩을 배운 게 아니라 '발상'이에요.</b> 오늘 이 중 4가지를 보여드립니다.</p>
+  <div class="notes"><h4>진행 멘트 <span class="time">2분</span></h4>
+    <div class="m">"본론 전에 제 얘기를 잠깐 할게요. 예전엔 저도 ChatGPT 같은 채팅 AI한테 물어보는 게 다였어요. 근데 그건 매번 처음부터고, 제 반복 잡무는 그대로였죠. 그런데 AI한테 '내 일을 통째로 시키는' 법을 익히고 나니 하루가 이렇게 바뀌었어요. 새벽 브리핑, 강의 PPT, 채점, 상담, 인용검증이 다 자동입니다. 중요한 건 코딩이 아니라 '이걸 AI한테 맡길 수 있다'는 발상이에요. 오늘 이 중 네 가지를 보여드릴게요."</div>
+  </div>
+</section>
+
+<!-- 3 오늘의 4가지 -->
 <section class="slide" data-corner="도입">
   <span class="chip" style="background:var(--c2)">오늘의 4가지</span>
   <h2>교육 · 행정 · 연구 — 교수 업무 전 영역</h2>
